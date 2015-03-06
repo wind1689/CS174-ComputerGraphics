@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assignment 3</title>
+<p style="line-height:120%">
+<font size="4" face="Times">
+1. Press "<font color = red>R</font>": Reset all the view;<br>
+2. Press "<font color = red>up</font>"/"<font color = red>down</font>": Control the altitude of camera(-90 < eyeVertAngle < 90);<br>
+3. Press "<font color = red>left</font>"/"<font color = red>right</font>": Control the azimuth of camera;<br>
+4. Press "<font color = red>I</font>"/"<font color = red>J</font>"/"<font color = red>K</font>"/"<font color = red>M</font>": Control forward, left, right and backward movement of camera;<br>
+5. Press "<font color = red>N</font>"/"<font color = red>W</font>": Make the field of view narrower or wider(30 < fovy < 150);<br>
+6. Press "<font color = red>1</font>"/"<font color = red>2</font>"/"<font color = red>3</font>"/"<font color = red>4</font>": Attach the eye point to planet1 / planet2 / planet3 / planet4;<br>
+7. Press "<font color = red>D</font>": Detach the eye point;
+</font>
+</p>
+<head>
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vNormal;
+uniform vec4 ambientProductV;
+uniform vec4 diffuseProductV;
+uniform vec4 specularProductV;
+uniform float shininessV;
+varying vec3 N, L, E;
+varying vec4 fColor;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
+uniform vec4 lightPosition;
+uniform float shadingMethodV;
+
+ void main()
+ {
+ 	//Vertex position;
+ 	gl_Position = projectionMatrix*viewMatrix*modelMatrix*vPosition;
+
+ 	vec3 pos = (viewMatrix * modelMatrix * vPosition).xyz;
+ 	vec3 light = (viewMatrix * lightPosition).xyz;
+ 	L = normalize( (lightPosition[3] == 0.0) ? light : (light - pos));
+ 	E = normalize(-pos);
+ 	N = normalize((viewMatrix * modelMatrix * vNormal).xyz);
+
+ 	//When the shading method is Flat or Gouraud shading
+ 	if (shadingMethodV > 0.0)
+ 	{
+ 		//Ambient term of color;
+ 		vec4 ambient = ambientProductV;
+ 		//Diffuse term of color;
+ 		vec4 diffuse = max(dot(L, N), 0.0) * diffuseProductV;
+ 		//Specular term of color;
+ 		vec3 H = normalize(L + E);   //Halfway vector;
+ 		vec4 specular = pow(max(dot(N, H), 0.0),shininessV) * specularProductV;
+ 		if (dot(L, N) < 0.0)	specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+ 		//Calculate the total color per vertex;
+ 		fColor = ambient + diffuse + specular;
+ 		fColor.a = 1.0;
+ 	}
+ }
+ </script>
+
+ <script id="fragment-shader" type="x-shader/x-fragment">
+ precision mediump float;
+
+ uniform vec4 ambientProductF;
+ uniform vec4 diffuseProductF;
+ uniform vec4 specularProductF;
+ uniform float shininessF;
+ uniform float shadingMethodF;
+ varying vec3 N, L, E;
+ varying vec4 fColor;
+
+ void main()
+ {
+ 	vec4 ffColor;
+ 	//When the shading method is Phong shading
+ 	if (shadingMethodF == 0.0)
+ 	{
+ 		//Ambient term of color;
+ 		vec4 ambient = ambientProductF;
+ 		//Diffuse term of color;
+ 		vec4 diffuse = max(dot(L, N), 0.0) * diffuseProductF;
+ 		//Specular term of color;
+ 		vec3 H = normalize(L + E);   //Halfway vector;
+ 		vec4 specular = pow(max(dot(N, H), 0.0),shininessF) * specularProductF;
+ 		if (dot(L, N) < 0.0)	specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+ 		//Calculate the total color per fragment;
+ 		ffColor = ambient + diffuse + specular;
+ 		ffColor.a = 1.0;
+ 	}
+ 	else
+ 		ffColor = fColor;
+
+ 	gl_FragColor = ffColor;
+ }
+ </script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="Assignment3.js"></script>
+
+<body>
+<canvas id="gl-canvas" width="512" height="512">
+	<!-- The following message is displayed if the browser doesn't
+	  -- support HTML5 -->
+	Sorry; your web browser does not support HTML5's canvas element.
+</canvas>
+</body>
+</html>

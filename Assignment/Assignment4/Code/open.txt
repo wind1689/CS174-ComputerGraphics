@@ -1,0 +1,1 @@
+"C:\Users\Wind\AppData\Local\Chromium\Application\chrome.exe"  --allow-file-access-from-files "E:\UCLA\Quarter1\ComputerGraphics_CS174\Assignment\Assignment4\Code\Assignment4"

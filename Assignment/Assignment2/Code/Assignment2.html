@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assignment 2</title>
+<br>
+<h3><font size="6" face="Times">Instruction:</font><br>
+<p style="line-height:120%">
+<font size="4" face="Times">
+1. Press "<font color = red>C</font>": Cycles the color of cubes & Show the cross hair;<br>
+2. Press "<font color = red>up</font>"/"<font color = red>down</font>": Control the altitude of camera;<br>
+3. Press "<font color = red>left</font>"/"<font color = red>right</font>": Control the azimuth of camera;<br>
+4. Press "<font color = red>I</font>"/"<font color = red>J</font>"/"<font color = red>K</font>"/"<font color = red>M</font>": Control forward, left, right and backward movement of camera;<br>
+5. Press "<font color = red>B</font>": Reset all the view and animation of cube;<br>
+6. Press "<font color = red>N</font>"/"<font color = red>W</font>": Make the field of view narrower or wider;<br>
+7. Press "<font color = red>A</font>": To start or stop the animation of rotating and scaling;<br>
+</font>
+</p>
+<head>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vColor;
+varying vec4 fColor;
+uniform mat4 modelViewMatrix;
+
+ void main()
+ {
+ 	fColor = vColor;
+ 	gl_Position = modelViewMatrix*vPosition;
+ }
+ </script>
+
+ <script id="fragment-shader" type="x-shader/x-fragment">
+ precision mediump float;
+ varying vec4 fColor;
+ void main()
+ {
+ 	gl_FragColor = fColor;
+ }
+ </script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="Assignment2.js"></script>
+
+<body>
+<canvas id="gl-canvas" width="512" height="512">
+	<!-- The following message is displayed if the browser doesn't
+	  -- support HTML5 -->
+	Sorry; your web browser does not support HTML5's canvas element.
+</canvas>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assignment 4</title>
+<p style="line-height:120%">
+<font size="4" face="Times">
+1. Press "<font color = red>I</font>"/"<font color = red>O</font>": Move the camera nearer or farer from cubes;<br>
+2. Press "<font color = red>R</font>": Start and stop the rotation of both cubes;<br>
+3. Press "<font color = red>T</font>": Start and stop the rotation of texture mapped on the left cube;<br>
+4. Press "<font color = red>S</font>": Start and stop the scrolling of texture mapped on the right cube;<br>
+</p>
+<head>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vNormal;
+attribute vec2 vUV;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
+uniform mat4 modelMatrixUV;
+uniform vec4 lightPosition;
+varying vec3 fL, fE, fN;
+varying vec2 fUV;
+
+ void main()
+ {
+ 	// Vertex position;
+ 	gl_Position = projectionMatrix*viewMatrix*modelMatrix*vPosition;
+
+ 	// fL, fE and fN passed to fragment shader;
+ 	vec3 pos = (viewMatrix * modelMatrix * vPosition).xyz;
+ 	vec3 light = (viewMatrix * lightPosition).xyz;
+ 	fL = normalize( (lightPosition[3] == 0.0) ? light : (light - pos));
+ 	fE = normalize(-pos);
+ 	fN = normalize((viewMatrix * modelMatrix * vNormal).xyz);
+
+ 	// fUV passed to fragment shader;
+ 	vec4 vUV_new = modelMatrixUV * vec4(vUV, 0.0, 1.0);
+ 	fUV = vUV_new.xy;
+ }
+ </script>
+
+ <script id="fragment-shader" type="x-shader/x-fragment">
+ precision mediump float;
+
+ uniform float shininess;
+ uniform sampler2D uSampler;
+ varying vec3 fL, fE, fN;
+ varying vec4 fColor;
+ varying vec2 fUV;
+
+ void main()
+ {
+ 	vec4 fColor;
+ 	// Texture color at fUV;
+ 	vec4 texColor = texture2D(uSampler, fUV);
+ 	// Ambient term of color;
+ 	vec4 ambient = 0.3 * texColor;
+ 	// Diffuse term of color;
+ 	vec4 diffuse = 0.6 * max(dot(fL, fN), 0.0) * texColor;
+ 	// Specular term of color;
+ 	vec3 fH = normalize(fL + fE);   //Halfway vector;
+ 	vec4 specular = 0.3 * pow(max(dot(fN, fH), 0.0),shininess) * texColor;
+ 	if (dot(fL, fN) < 0.0)	specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+ 	// Calculate the total color per fragment;
+ 	fColor = ambient + diffuse + specular;
+ 	fColor.a = 1.0;
+
+ 	// For testing
+ 	// fColor = vec4(1, 0, 0, 1);
+
+ 	gl_FragColor = fColor;
+ }
+ </script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="Assignment4.js"></script>
+
+<body>
+<canvas id="gl-canvas" width="512" height="512">
+	<!-- The following message is displayed if the browser doesn't
+	  -- support HTML5 -->
+	Sorry; your web browser does not support HTML5's canvas element.
+</canvas>
+</body>
+</html>

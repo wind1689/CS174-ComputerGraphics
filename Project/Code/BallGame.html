@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rolling Ball</title>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vNormal;
+attribute vec2 vUV;
+attribute vec4 vColor;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
+uniform mat4 normalMatrix;
+uniform vec4 lightPosition;
+varying vec3 fL, fE, fN;
+varying vec2 fUV;
+// varying vec4 fColor;
+
+ void main()
+ {
+ 	//Vertex position;
+ 	gl_Position = projectionMatrix*viewMatrix*modelMatrix*vPosition;
+
+ 	// fL, fE and fN passed to fragment shader;
+ 	vec3 pos = (viewMatrix * modelMatrix * vPosition).xyz;
+ 	vec3 light = (viewMatrix * lightPosition).xyz;
+ 	fL = normalize( (lightPosition[3] == 0.0) ? light : (light - pos));
+ 	fE = normalize(-pos);
+ 	//fN = normalize((viewMatrix * modelMatrix * vNormal).xyz);
+  fN = normalize( (normalMatrix*vNormal).xyz);
+
+ 	// fUV passed to fragment shader;
+ 	fUV = vUV;
+ }
+ </script>
+
+ <script id="fragment-shader" type="x-shader/x-fragment">
+ precision mediump float;
+
+ uniform float shininess;
+ uniform bool isTextureMapped;
+ uniform sampler2D uSampler;
+ uniform vec4 lightAmbient;
+ uniform vec4 lightDiffuse;
+ uniform vec4 lightSpecular;
+ uniform vec4 materialAmbient;
+ uniform vec4 materialDiffuse;
+ uniform vec4 materialSpecular;
+ varying vec3 fL, fE, fN;
+ // varying vec4 fColor;
+ varying vec2 fUV;
+ void main()
+ {
+ 	// Texture color at fUV;
+ 	vec4 texColor = vec4(1.0, 1.0, 1.0, 1.0);
+ 	if (isTextureMapped)
+ 		texColor = texture2D(uSampler, fUV);
+
+ 	vec4 ambientProduct = lightAmbient * materialAmbient;
+ 	vec4 diffuseProduct = lightDiffuse * materialDiffuse;
+ 	vec4 specularProduct = lightSpecular * materialSpecular;
+ 	vec4 fColor;
+ 	// Ambient term of color;
+ 	vec4 ambient = ambientProduct * texColor;
+ 	// Diffuse term of color;
+ 	vec4 diffuse = max(dot(fL, fN), 0.0) * diffuseProduct * texColor;
+ 	// Specular term of color;
+ 	vec3 fH = normalize(fL + fE);   //Halfway vector;
+ 	vec4 specular = pow(max(dot(fN, fH), 0.0), shininess) * specularProduct * texColor;
+ 	if (dot(fL, fN) < 0.0)	specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+ 	//Calculate the total color per fragment;
+ 	fColor = ambient + diffuse + specular;
+ 	fColor.a = 1.0;
+
+ 	//Fragment color;
+ 	gl_FragColor = fColor;
+ 	// gl_FragColor = vec4(0.0, 0.6, 0.8, 1.0);
+ }
+ </script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="../Common/leap-0.6.3.js"></script>
+<script type="text/javascript" src="../Common/leap-plugins-0.1.8.js"></script>
+<script type="text/javascript" src="GeometricsModel.js"></script>
+<script type="text/javascript" src="Collision.js"></script>
+<script type="text/javascript" src="World.js"></script>
+<script type="text/javascript" src="BallGame.js"></script>
+<script type="text/javascript" src="rotateView.js"></script>
+
+<body bgcolor="black">
+    <h1 style="text-align:center"><font color=grey>Rolling Ball</font></h1>
+
+<canvas id="gl-canvas" width="1024" height="768" >
+	<!-- The following message is displayed if the browser doesn't
+	  -- support HTML5 -->
+	Sorry; your web browser does not support HTML5's canvas element.
+</canvas>
+
+    <h4 style="text-align:right"><font color=grey>CS174A Term Project by:&nbsp&nbsp&nbspShijian Zheng & Mengnan Jia & Qi Shao&nbsp&nbsp&nbsp</font>
+    <h4 style="text-align:right"><font color=grey>BGM: "Cornfield Chase" -Interstellar &nbsp&nbsp&nbsp</font></h4>
+ <!--   <h3>Status:</h3>
+  <div id="frameData"></div>-->
+
+    <audio id='soundtrack'loop> 
+        <source src='../Sound/soundtrack.mp3' type='audio/mp3'> 
+      </audio> 
+
+<audio id='metal-sound' > 
+        <source src='../Sound/metal.wav'> 
+      </audio>
+<audio id='final-sound' > 
+        <source src='../Sound/applause1.wav'> 
+      </audio>
+<audio id='collide-sound' > 
+        <source src='../Sound/collide.mp3'> 
+      </audio>
+<audio id='rolling-sound'  loop> 
+        <source src='../Sound/rolling.mp3'> 
+    </audio>
+
+</body>
+</html>
